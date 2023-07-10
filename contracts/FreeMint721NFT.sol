@@ -93,6 +93,29 @@ contract FreeMint721NFT is Governable, ERC721 {
         _acceptCurrency = acceptCurrency;
     }
 
+  
+    function getMaxAmount() external view returns (uint256) {
+        return _maxAmount;
+    }
+    function getStartTime() external view returns (uint256) {
+        return _startTime;
+    }
+    function getEndTime() external view returns (uint256) {
+        return _endTime;
+    }
+    function getUserLimit() external view returns (uint256) {
+        return _userLimit;
+    }
+    function getMintPrice() external view returns (uint256) {
+        return _mintPrice;
+    }
+    function getAcceptCurrency() external view returns (address) {
+        return _acceptCurrency;
+    }
+    function getUserMinted(address user) external view returns (uint256) {
+        return userMinted[user];
+    }
+
     function mint() public payable {
         require(_counter < _maxAmount, "Exceed maximum");
         require(_startTime < now, "no start");
