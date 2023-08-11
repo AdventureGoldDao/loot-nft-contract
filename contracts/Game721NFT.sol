@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Governable.sol";
 import "./Signature.sol";
 
-contract FreeMint721NFT is Governable, ERC721, Signature {
+contract Game721NFT is Governable, ERC721, Signature {
     event Mint(address indexed owner, uint256 indexed tokenId);
 
     uint256 private _counter;
@@ -17,6 +17,7 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
     uint256 private _mintPrice;
     address private _acceptCurrency;
     address private _signer;
+    bool private _needVerify;
 
     mapping(address => uint256) public userMinted;
     address ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
@@ -31,7 +32,8 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
         uint256 userLimit,
         address acceptCurrency,
         uint256 mintPrice,
-        address signer
+        address signer,
+        bool needVerify
     ) public ERC721(name, symbol) {
         string memory addressStr = _toAsciiString(address(this));
         _setBaseURI(string(abi.encodePacked(baseURI, "0x", addressStr, "/")));
@@ -42,6 +44,7 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
         _mintPrice = mintPrice;
         _acceptCurrency = acceptCurrency;
         _signer = signer;
+        _needVerify = needVerify;
         super.initialize(msg.sender);
     }
 
@@ -99,6 +102,9 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
     function setSigner(address signer) external governance {
         _signer = signer;
     }
+    function setNeedVerify(bool needVerify) external governance {
+        _needVerify = needVerify;
+    }
 
   
     function getMaxAmount() external view returns (uint256) {
@@ -125,6 +131,9 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
     function getSigner() external governance view returns (address) {
         return _signer;
     }
+    function getNeedVerify() external view returns (bool) {
+        return _needVerify;
+    }
 
 
 
@@ -132,12 +141,16 @@ contract FreeMint721NFT is Governable, ERC721, Signature {
         uint256 _nonce,
         bytes memory _signature
     ) public payable {
-        address real_signer = verify(
-            msg.sender,
-            _nonce,
-            _signature
-        );
-        require(_signer == real_signer, "invalid signature");
+
+        if (_needVerify) {
+            address real_signer = verify(
+                msg.sender,
+                _nonce,
+                address(this),
+                _signature
+            );
+            require(_signer == real_signer, "invalid signature");
+        }
 
         require(_counter < _maxAmount, "Exceed maximum");
         require(_startTime < now, "no start");

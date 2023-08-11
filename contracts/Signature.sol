@@ -12,9 +12,10 @@ contract Signature {
     function verify(
         address _to,
         uint _nonce,
+        address contractAddress,
         bytes memory signature
     ) public pure returns (address) {
-        bytes32 messageHash = keccak256(abi.encodePacked(_to, _nonce));
+        bytes32 messageHash = keccak256(abi.encodePacked(_to, _nonce, contractAddress));
         (bytes32 r, bytes32 s, uint8 v) = splitSignature(signature);
         return ecrecover(messageHash, v, r, s);
     }
