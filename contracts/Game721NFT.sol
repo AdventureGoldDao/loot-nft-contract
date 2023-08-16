@@ -171,6 +171,31 @@ contract Game721NFT is Governable, ERC721, Signature {
         emit Mint(msg.sender, _counter);
     }
 
+    function mint() public payable {
+
+        if (_needVerify) {
+            require(_needVerify == false, "need verify");
+        }
+
+        require(_counter < _maxAmount, "Exceed maximum");
+        require(_startTime < now, "no start");
+        require(_endTime > now, "is end");
+        require(userMinted[msg.sender] < _userLimit, "Exceed limit");
+
+        if (_mintPrice > 0) {
+          if (_acceptCurrency == ZERO_ADDRESS) {
+              require(msg.value >= _mintPrice, "Insufficient funds");
+          } else {
+              IERC20(_acceptCurrency).transferFrom(msg.sender, address(this), _mintPrice);
+          }
+        }
+
+        _counter += 1;
+        userMinted[msg.sender] += 1;
+        _mint(msg.sender, _counter);
+        emit Mint(msg.sender, _counter);
+    }
+
     function claimTokenTo(address token, uint256 amount, address to) external governance {
         if (token == ZERO_ADDRESS) {
             payable(to).transfer(amount);
